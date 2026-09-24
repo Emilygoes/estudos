@@ -1,0 +1,44 @@
+from fastapi import FastAPI, Form
+from fastapi.responses import FileResponse
+import mysql.connector
+
+app = FastAPI()
+
+
+def conectar_banco():
+    return mysql.connector.connect(
+        host="localhost",
+        user="root",
+        password="",
+        database="cadastro"
+    )
+
+
+@app.get("/")
+def inicio():
+    return FileResponse("index.html")
+
+
+@app.post("/cadastrar")
+def cadastrar(
+    Nome: str = Form(...),
+    Telefone: str = Form(...),
+    Email: str = Form(...)
+):
+    conexao = conectar_banco()
+    cursor = conexao.cursor()
+
+    sql = """
+        INSERT INTO usuarios (Nome, Telefone, Email)
+        VALUES (%s, %s, %s)
+    """
+
+    valores = (Nome, Telefone, Email)
+
+    cursor.execute(sql, valores)
+    conexao.commit()
+
+    cursor.close()
+    conexao.close()
+
+    return {"mensagem": "Cadastro realizado com sucesso!"}
